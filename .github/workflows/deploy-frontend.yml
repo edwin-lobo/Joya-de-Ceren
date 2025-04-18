@@ -1,0 +1,78 @@
+name: Deploy Frontend to S3
+
+on:
+  push:
+    branches:
+      - main # Or your default branch
+    paths:
+      - 'frontend/**' # Only run if frontend code changes
+      - '.github/workflows/deploy-frontend.yml' # Or if the workflow itself changes
+
+permissions:
+  id-token: write # Required for AWS OIDC authentication
+  contents: read  # Required to check out the code
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Frontend
+    runs-on: ubuntu-latest
+    # Default shell is bash, set explicitly for potentially stricter error handling
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------
+      # Configure AWS Credentials using OIDC
+      # Prerequisites:
+      # 1. IAM OIDC provider for GitHub set up in your AWS account.
+      # 2. IAM Role created with trust relationship to GitHub OIDC (scoped to your repo/branch).
+      # 3. The Role ARN below stored as a GitHub Secret (e.g., AWS_ROLE_TO_ASSUME).
+      # 4. S3_BUCKET_NAME and CLOUDFRONT_DISTRIBUTION_ID stored as GitHub Secrets.
+      # -----------------------------------------------------
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} # Use the ARN from Terraform output
+          aws-region: us-east-1 # Change to your AWS region
+
+      # -----------------------------------------------------
+      # Setup Node.js Environment
+      # -----------------------------------------------------
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use LTS version matching your project
+          cache: 'npm' # Cache dependencies
+          cache-dependency-path: frontend/package-lock.json
+
+      # -----------------------------------------------------
+      # Build Frontend Application
+      # -----------------------------------------------------
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci # Use ci for cleaner installs in CI/CD
+
+      - name: Build Frontend Static Export
+        working-directory: ./frontend
+        run: npm run build # This runs 'next build' which generates output in frontend/out/
+
+      # -----------------------------------------------------
+      # Deploy to S3 and Invalidate CloudFront
+      # -----------------------------------------------------
+      - name: Deploy Static Files to S3
+        run: |
+          aws s3 sync ./frontend/out/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
+        # Syncs the build output ('frontend/out/') to the root of the bucket.
+        # --delete removes files in the bucket that are not in the build output.
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+        # Invalidate all files (*) to ensure users get the latest version.
+
+      - name: Deployment Successful
+        run: echo "Frontend deployment to S3 and CloudFront invalidation complete!"

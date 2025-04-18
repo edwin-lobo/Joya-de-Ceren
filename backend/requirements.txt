@@ -1,0 +1,5 @@
+fastapi>=0.110.0,<0.111.0 # Use appropriate version
+uvicorn[standard]>=0.29.0,<0.30.0
+mangum>=0.17.0,<0.18.0
+boto3>=1.34.0,<1.35.0 # For AWS SDK later
+pydantic>=2.0.0,<3.0.0

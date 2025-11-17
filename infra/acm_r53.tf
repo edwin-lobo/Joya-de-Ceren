@@ -1,3 +1,20 @@
+# Example: infra/route53_zone.tf (or add to acm_route53.tf)
+# NOTE: Only use this if you want Terraform to CREATE the zone.
+# Remove the corresponding 'data' block from data.tf if you use this.
+
+resource "aws_route53_zone" "primary" {
+  name = "${var.punycode_domain_name}." # Ensure trailing dot if using resource block 'name' directly
+
+  tags = {
+    Name = "${var.punycode_domain_name}-zone"
+  }
+}
+
+# Output the name servers so you can update your registrar
+output "route53_zone_name_servers" {
+  description = "Name servers for the Route 53 hosted zone. Update these at your domain registrar."
+  value       = aws_route53_zone.primary.name_servers
+}
 # --- ACM Certificate for Custom Domain (in us-east-1) ---
 resource "aws_acm_certificate" "cert" {
   provider = aws.us_east_1 # Use the us-east-1 provider alias

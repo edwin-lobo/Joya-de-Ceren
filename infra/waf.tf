@@ -1,5 +1,5 @@
 resource "aws_wafv2_ip_set" "whitelist" {
-  name        = "${var.punycode_domain_name}-whitelist-ipset"
+  name        = replace("${var.punycode_domain_name}-whitelist-ipset", ".", "-") # FIXED
   description = "IP addresses allowed to access ${var.punycode_domain_name}"
   scope       = "CLOUDFRONT" # Important: Scope must be CLOUDFRONT for CloudFront distributions
 
@@ -9,7 +9,7 @@ resource "aws_wafv2_ip_set" "whitelist" {
 }
 
 resource "aws_wafv2_web_acl" "acl" {
-  name        = "${var.punycode_domain_name}-web-acl"
+  name        = replace("${var.punycode_domain_name}-web-acl", ".", "-") # FIXED
   description = "Web ACL for ${var.punycode_domain_name} to whitelist IPs"
   scope       = "CLOUDFRONT" # Important: Scope must be CLOUDFRONT
 
@@ -41,7 +41,7 @@ resource "aws_wafv2_web_acl" "acl" {
 
   visibility_config {
     cloudwatch_metrics_enabled = true
-    metric_name                = "${var.punycode_domain_name}WebACLMetric"
+    metric_name                = replace("${var.punycode_domain_name}WebACLMetric", ".", "-") # FIXED metric name too
     sampled_requests_enabled   = true # Set to false to reduce cost if sampling not needed
   }
 }

@@ -6,7 +6,9 @@ data "aws_iam_policy_document" "github_oidc_assume_role_policy" {
     principals {
       type = "Federated"
       # Reference the OIDC provider ARN - uses coalesce for robustness if provider exists or not
-      identifiers = [coalesce(try(aws_iam_openid_connect_provider.github[0].arn, null), data.aws_iam_openid_connect_provider.github_check.arn)]
+      # identifiers = [coalesce(try(aws_iam_openid_connect_provider.github[0].arn, null), data.aws_iam_openid_connect_provider.github_check.arn)]
+      # Reference the resource ARN directly (index [0] needed as count=1 resource behaves like list index 0)
+      identifiers = [aws_iam_openid_connect_provider.github.arn]
     }
     condition {
       test     = "StringLike"
@@ -29,7 +31,7 @@ resource "aws_iam_openid_connect_provider" "github" {
   # Note: First run might error if provider doesn't exist and data source fails hard.
   # Re-running after failure or manual creation resolves this.
   # Robustness check: try() attempts to access the data source attribute, returns null on error
-  count = try(data.aws_iam_openid_connect_provider.github_check.url, "") == "" ? 1 : 0
+  # count = try(data.aws_iam_openid_connect_provider.github_check.url, "") == "" ? 1 : 0
 
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]

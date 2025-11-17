@@ -1,19 +1,25 @@
 variable "punycode_domain_name" {
   description = "The Punycode version of your custom domain (e.g., xn--cern-sna.com for Cerén.com)"
   type        = string
-  default     = "xn--cern-sna.com"
+  default     = "xn--cern-dpa.com"
+}
+
+variable "punycode_domain_zone_id" {
+  description = "The Punycode version of your custom domain (e.g., xn--cern-sna.com for Cerén.com)"
+  type        = string
+  default     = "Z07728812PFXO0UGJ04RP"
 }
 
 variable "www_punycode_domain_name" {
   description = "The Punycode version of the www subdomain (e.g., www.xn--cern-sna.com)"
   type        = string
-  default     = "www.xn--cern-sna.com"
+  default     = "www.xn--cern-dpa.com"
 }
 
 variable "s3_bucket_name_prefix" {
   description = "Prefix for the S3 bucket name to ensure uniqueness."
   type        = string
-  default     = "xn--cern-sna" # Will append random suffix now
+  default     = "dev-100-ceren" # Will append random suffix now
 }
 
 variable "whitelisted_ips" {

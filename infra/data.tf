@@ -9,9 +9,9 @@ data "aws_route53_zone" "primary" {
 }
 
 # Check if GitHub OIDC Provider exists
-data "aws_iam_openid_connect_provider" "github_check" {
+# data "aws_iam_openid_connect_provider" "github_check" {
   # This data source will error if the provider doesn't exist.
   # The iam.tf file handles this potential error using count for conditional creation.
   # Consider managing the OIDC provider outside this project if shared.
-  url = "https://token.actions.githubusercontent.com"
-}
+  # url = "https://token.actions.githubusercontent.com"
+# }
